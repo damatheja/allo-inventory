@@ -11,30 +11,43 @@ export async function releaseExpiredReservations(): Promise<number> {
   const expired = await prisma.reservation.findMany({
     where: {
       status: "PENDING",
-      expiresAt: { lt: now },
+      expiresAt: {
+        lt: now,
+      },
     },
-    select: { id: true, stockId: true, quantity: true },
+    select: {
+      id: true,
+      stockId: true,
+      quantity: true,
+    },
   });
 
   if (expired.length === 0) return 0;
 
-  // Release each expired reservation
-for (const r of expired) {
-  await prisma.$transaction([
-    prisma.reservation.update({
-      where: { id: r.id },
-      data: { status: "RELEASED" },
-    }),
-    prisma.stock.update({
-      where: { id: r.stockId },
-      data: {
-        reserved: {
-          decrement: r.quantity,
+  // Release all expired reservations in one transaction
+  await prisma.$transaction(
+    expired.flatMap((r) => [
+      prisma.reservation.update({
+        where: {
+          id: r.id,
         },
-      },
-    }),
-  ]);
-}
+        data: {
+          status: "RELEASED",
+        },
+      }),
+      prisma.stock.update({
+        where: {
+          id: r.stockId,
+        },
+        data: {
+          reserved: {
+            decrement: r.quantity,
+          },
+        },
+      }),
+    ])
+  );
+
   return expired.length;
 }
 

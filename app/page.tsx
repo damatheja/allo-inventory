@@ -3,9 +3,20 @@ import { ProductList } from "@/components/ProductList";
 export const revalidate = 0;
 
 async function getProducts() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/products`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch products");
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+  if (!baseUrl) {
+    throw new Error("NEXT_PUBLIC_BASE_URL is missing");
+  }
+
+  const res = await fetch(`${baseUrl}/api/products`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch products");
+  }
+
   return res.json();
 }
 
