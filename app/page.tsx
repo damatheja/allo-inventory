@@ -3,13 +3,7 @@ import { ProductList } from "@/components/ProductList";
 export const revalidate = 0;
 
 async function getProducts() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
-  if (!baseUrl) {
-    throw new Error("NEXT_PUBLIC_BASE_URL is missing");
-  }
-
-  const res = await fetch(`${baseUrl}/api/products`, {
+  const res = await fetch("/api/products", {
     cache: "no-store",
   });
 
@@ -31,6 +25,7 @@ export default async function HomePage() {
           Reserve items to hold them for 10 minutes while you check out.
         </p>
       </div>
+
       <ProductList initialProducts={products} />
     </div>
   );
