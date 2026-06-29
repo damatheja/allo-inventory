@@ -18,22 +18,23 @@ export async function releaseExpiredReservations(): Promise<number> {
 
   if (expired.length === 0) return 0;
 
-  // Release each in a transaction
-  await prisma.$transaction(
-    expired.map((r) =>
-      prisma.$transaction([
-        prisma.reservation.update({
-          where: { id: r.id },
-          data: { status: "RELEASED" },
-        }),
-        prisma.stock.update({
-          where: { id: r.stockId },
-          data: { reserved: { decrement: r.quantity } },
-        }),
-      ])
-    )
-  );
-
+  // Release each expired reservation
+for (const r of expired) {
+  await prisma.$transaction([
+    prisma.reservation.update({
+      where: { id: r.id },
+      data: { status: "RELEASED" },
+    }),
+    prisma.stock.update({
+      where: { id: r.stockId },
+      data: {
+        reserved: {
+          decrement: r.quantity,
+        },
+      },
+    }),
+  ]);
+}
   return expired.length;
 }
 
